@@ -3,36 +3,44 @@ from discord.ext import commands
 from discord import app_commands
 from dotenv import load_dotenv
 import os
-import aiohttp
+import asyncio
 
-config = load_dotenv()
+load_dotenv()
+
 
 class MuffinBot(commands.Bot):
+    def __init__(self):
+        super().__init__(
+            command_prefix="/",
+            intents=discord.Intents.default(),
+            activity=discord.Activity(type=discord.ActivityType.playing, name=os.getenv('STATUS', 'lytex.dev')),
+            status=discord.Status.online,
+            help_command=None,
+        )
+
     async def on_ready(self):
         print(f'{self.user} is now running!')
-        
-intents = discord.Intents.default()
-intents.message_content = True
+        try:
+            synced = await self.tree.sync()
+            print(f"Synced {len(synced)} commands globally.")
+        except Exception as e:
+            print(f"Failed to sync commands: {e}")
 
-client = MuffinBot(
-    command_prefix="/",
-    intents=intents,
-    activity=discord.Activity(type=discord.ActivityType.listening, name=os.getenv('STATUS', 'lytex.dev')),
-    status=discord.Status.online,
-    sync_commands=True,
-    delete_not_existing_commands=True
-)
+client = MuffinBot()
 
-@client.tree.command(name="ping", description="Replies with pong!")
-async def ping(interaction: discord.Interaction):
-    await interaction.response.send_message("Pong!")
+async def load_extensions():
+    for file in os.listdir("modules"):
+        if file.endswith(".py"):
+            try:
+                await client.load_extension(f"modules.{file[:-3]}")
+                print(f"Module loaded: {file}")
+            except Exception as e:
+                print(f"Error loading {file}: {e}")
+
+async def main():
+    async with client:
+        await load_extensions()
+        await client.start(os.getenv('TOKEN'))
 
 if __name__ == "__main__":
-    try:
-        for file in os.listdir('modules'):
-            if file.endswith('.py'):
-                client.load_extension(f'modules.{file[:-3]}')
-        
-        client.run(os.getenv('TOKEN'))
-    except Exception as e:
-        print(f"Error: {e}")
+    asyncio.run(main())
