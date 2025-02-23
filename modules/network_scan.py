@@ -25,6 +25,16 @@ class NetworkScan(commands.Cog):
             return ip_address
         except socket.gaierror:
             return None
+    
+    async def fetch_dns_records(self, domain, record_type):
+        url = f"https://dns.google/resolve?name={domain}&type={record_type}"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return data.get("Answer", [])
+                return None
 
     def run_nmap_scan(self, target, scan_type):
         resolved_ip = self.resolve_domain(target) or target
@@ -110,6 +120,48 @@ class NetworkScan(commands.Cog):
         embed.add_field(name="📍 Location", value=f"{ip_data.get('city', 'Unknown')}, {ip_data.get('country', 'Unknown')}", inline=False)
         embed.add_field(name="🏢 ISP", value=ip_data.get("org", "Unknown"), inline=False)
         embed.add_field(name="🌎 Hostname", value=ip_data.get("hostname", 'Unknown'), inline=False)
+
+        await interaction.followup.send(embed=embed, ephemeral=True)
+    
+    @app_commands.command(name="reverseip", description="Find all domains hosted on a given IP address")
+    async def reverse_ip_command(self, interaction: discord.Interaction, ip: str):
+        await interaction.response.defer(thinking=True, ephemeral=True)
+
+        if self.is_private_ip(ip):
+            await interaction.followup.send("❌ Private or local IPs cannot be scanned.", ephemeral=True)
+            return
+
+        domains = await self.reverse_ip_lookup(ip)
+
+        embed = discord.Embed(title=f"🔍 Reverse IP Lookup for {ip}", color=discord.Color.blue())
+
+        if domains:
+            formatted_domains = "\n".join(domains[:10])
+            embed.add_field(name="🌐 Hosted Domains", value=formatted_domains, inline=False)
+            embed.set_footer(text="Showing first 10 results. Some results may be omitted.")
+        else:
+            embed.description = "No domains found for this IP."
+
+        await interaction.followup.send(embed=embed, ephemeral=True)
+    
+    @app_commands.command(name="dns", description="Retrieve DNS records for a domain")
+    async def dns_lookup(self, interaction: discord.Interaction, domain: str):
+        await interaction.response.defer(thinking=True, ephemeral=True)
+
+        records = {}
+        record_types = ["A", "MX", "TXT", "NS", "CNAME"]
+
+        for record_type in record_types:
+            records[record_type] = await self.fetch_dns_records(domain, record_type)
+
+        embed = discord.Embed(title=f"📡 DNS Records for {domain}", color=discord.Color.blue())
+
+        for record_type, values in records.items():
+            if values:
+                record_values = "\n".join([entry.get("data", "Unknown") for entry in values])
+                embed.add_field(name=f"🔹 {record_type} Records", value=record_values, inline=False)
+            else:
+                embed.add_field(name=f"🔹 {record_type} Records", value="❌ No records found.", inline=False)
 
         await interaction.followup.send(embed=embed, ephemeral=True)
 
