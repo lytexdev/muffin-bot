@@ -64,7 +64,7 @@ class BreachScan(commands.Cog):
 
         await scan_message.edit(content="", embed=embed)
 
-    @app_commands.command(name="domainscan", description="Scan a domain for data breaches.")
+    @app_commands.command(name="domainscan", description="Scan a domain for data breaches")
     @commands.cooldown(1, 600, commands.BucketType.user)
     async def domain_scan(self, interaction: discord.Interaction, domain: str):
         await interaction.response.defer(thinking=True, ephemeral=True)
