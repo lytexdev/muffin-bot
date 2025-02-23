@@ -19,7 +19,7 @@ class WebsiteArchiveLookup(commands.Cog):
         except Exception:
             return None
 
-    @app_commands.command(name="archive", description="Retrieve old versions of a website from Archive.org")
+    @app_commands.command(name="webarchive", description="Retrieve old versions of a website from Archive.org")
     async def archive_lookup(self, interaction: discord.Interaction, domain: str):
         await interaction.response.defer(thinking=True, ephemeral=True)
 
