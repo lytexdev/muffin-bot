@@ -1,9 +1,16 @@
-# Muffin Security Bot
+# Muffin Discord Bot 🧁
+
+## Overview
+
+Muffin is a Discord bot designed for ethical security research and general network reconnaissance. It includes tools for website security scanning, IP checks, DNS lookups, and more.
+
+**⚠️ Only for educational and ethical purposes!**
 
 ## Installation
 
 ## Prerequisites
 - Python 3.12+
+- Discord Bot Token from [Discord Developer Portal](https://discord.com/developers/applications)
 
 **Copy and rename `.env.example` to `.env` and adjust it to your needs**
 ```bash
