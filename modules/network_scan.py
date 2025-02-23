@@ -86,5 +86,32 @@ class NetworkScan(commands.Cog):
 
         await interaction.followup.send(embed=embed, ephemeral=True)
 
+    @app_commands.command(name="checkip", description="Check IP reputation and security info")
+    async def check_ip_command(self, interaction: discord.Interaction, ip: str):
+        await interaction.response.defer(thinking=True, ephemeral=True)
+
+        if self.is_private_ip(ip) or ip in ["127.0.0.1", "::1", "localhost"]:
+            await interaction.followup.send("❌ Checking private or local IP addresses is not allowed.", ephemeral=True)
+            return
+
+        url = f"https://ipinfo.io/{ip}/json"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    ip_data = await response.json()
+                else:
+                    ip_data = None
+
+        if not ip_data:
+            await interaction.followup.send("⚠️ Error retrieving IP information.", ephemeral=True)
+            return
+
+        embed = discord.Embed(title=f"🌍 IP information for {ip}", color=discord.Color.green())
+        embed.add_field(name="📍 Location", value=f"{ip_data.get('city', 'Unknown')}, {ip_data.get('country', 'Unknown')}", inline=False)
+        embed.add_field(name="🏢 ISP", value=ip_data.get("org", "Unknown"), inline=False)
+        embed.add_field(name="🌎 Hostname", value=ip_data.get("hostname", 'Unknown'), inline=False)
+
+        await interaction.followup.send(embed=embed, ephemeral=True)
+
 async def setup(client):
     await client.add_cog(NetworkScan(client))
