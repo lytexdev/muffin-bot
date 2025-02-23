@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  muffin-bot:
+    container_name: muffin-bot
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./:/app
+    command: ["python3", "main.py"]
