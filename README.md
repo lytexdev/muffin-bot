@@ -2,7 +2,7 @@
 
 ## Overview
 
-Muffin is a Discord bot designed for ethical security research and general network reconnaissance. It includes tools for website security scanning, IP checks, DNS lookups, and more.
+Muffin is a Discord bot designed for OSINT research and general network reconnaissance. It includes tools for website security scanning, IP checks, DNS lookups, Seocheck and more.
 
 **⚠️ Strictly for educational, ethical, and legal purposes only!**
 
